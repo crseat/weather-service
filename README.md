@@ -26,7 +26,7 @@ curl "http://localhost:8080/v1/forecast?lat=37.7749&lon=-122.4194"
 export NWS_USER_AGENT="WeatherService/1.0 (you@example.com)"
 
 # Run
-make docker-build && make docker-run
+docker-compose up --build
 
 # Request
 curl "http://localhost:8080/v1/forecast?lat=37.7749&lon=-122.4194"
