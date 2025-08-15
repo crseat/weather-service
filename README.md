@@ -81,7 +81,3 @@ OpenAPI spec: `api/openapi.yaml`.
 - Uses the NWS discovery pattern: `/points/{lat},{lon}` => `properties.forecast` URL; then GET that URL to obtain periods.
 - Caches `/points` lookups and forecast responses in-memory with a simple TTL to avoid hammering the API.
 - Requires Go **1.22+** (uses the new stdlib ServeMux patterns like `GET /path`).
-
-## License
-
-MIT (adjust as needed).
