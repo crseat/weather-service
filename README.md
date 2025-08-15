@@ -43,7 +43,7 @@ Example response:
     "temperature": {"value": 72, "unit": "F", "type": "moderate"}
   },
   "source": "api.weather.gov",
-  "meta": {"gridId":"MTR","gridX":88,"gridY":126}
+  "meta": {"updated":"2025-08-15T20:26:06Z"}
 }
 ```
 
@@ -85,7 +85,7 @@ OpenAPI spec: `api/openapi.yaml`.
 
 ## Possible Improvements
 
-- More Unit Tests especially for the server
+- More Unit Tests
 - If we were in prod, we would probably use a database like redis for the cache so that the cache can be shared across 
   multiple instances of the service. 
 - CICD with GitHub Actions

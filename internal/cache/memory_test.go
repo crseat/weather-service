@@ -1,14 +1,16 @@
-package cache
+package cache_test
 
 import (
 	"strconv"
 	"sync"
 	"testing"
 	"time"
+
+	"weather-service/internal/cache"
 )
 
 func TestSetGet(t *testing.T) {
-	c := NewCache(100 * time.Millisecond)
+	c := cache.NewCache(100 * time.Millisecond)
 	c.Set("k", "v")
 	v, ok := c.Get("k")
 	if !ok {
@@ -20,7 +22,7 @@ func TestSetGet(t *testing.T) {
 }
 
 func TestExpiration(t *testing.T) {
-	c := NewCache(10 * time.Millisecond)
+	c := cache.NewCache(10 * time.Millisecond)
 	c.Set("foo", 42)
 	// Should be present immediately
 	if _, ok := c.Get("foo"); !ok {
@@ -38,7 +40,7 @@ func TestExpiration(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	c := NewCache(50 * time.Millisecond)
+	c := cache.NewCache(50 * time.Millisecond)
 	c.Set("del", true)
 	if _, ok := c.Get("del"); !ok {
 		t.Fatalf("expected key to exist before delete")
@@ -50,7 +52,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestOverwriteResetsTTLAndValue(t *testing.T) {
-	c := NewCache(30 * time.Millisecond)
+	c := cache.NewCache(30 * time.Millisecond)
 	c.Set("k", "v1")
 	time.Sleep(15 * time.Millisecond)
 	c.Set("k", "v2")
@@ -71,7 +73,7 @@ func TestOverwriteResetsTTLAndValue(t *testing.T) {
 }
 
 func TestZeroTTLExpiresImmediately(t *testing.T) {
-	c := NewCache(0)
+	c := cache.NewCache(0)
 	c.Set("k", 1)
 	// Even an immediate Get may race the exact same timestamp; allow a tiny sleep
 	time.Sleep(1 * time.Millisecond)
@@ -81,7 +83,7 @@ func TestZeroTTLExpiresImmediately(t *testing.T) {
 }
 
 func TestConcurrentAccess(t *testing.T) {
-	c := NewCache(100 * time.Millisecond)
+	c := cache.NewCache(100 * time.Millisecond)
 	const goroutines = 10
 	const perG = 20
 	var wg sync.WaitGroup

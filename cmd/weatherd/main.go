@@ -58,6 +58,7 @@ func main() {
 		logger.Info("starting weather-service", "port", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("server startup error", "err", err)
+			os.Exit(1)
 		}
 	}()
 

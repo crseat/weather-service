@@ -51,7 +51,7 @@ func (h *Handler) GetForecast(w http.ResponseWriter, r *http.Request) {
 }
 
 // Health handles GET /healthz returning a simple health status.
-func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":  "ok",
 		"version": version.Version,

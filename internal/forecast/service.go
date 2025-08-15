@@ -10,6 +10,10 @@ import (
 	"weather-service/internal/nws"
 )
 
+const (
+	source = "api.weather.gov"
+)
+
 // Service provides forecast data operations.
 type Service interface {
 	// GetTodaysForcast returns a summarized forecast result for the given coordinates.
@@ -22,7 +26,7 @@ type service struct {
 	bands  Bands
 }
 
-// NewService constructs a forecast Service using the given NWS client, cache and bands.
+// NewService constructs a forecast Service using the given NWS client, cache, and bands.
 func NewService(client *nws.Client, cache *cache.Memory, bands Bands) Service {
 	return &service{client: client, cache: cache, bands: bands}
 }
@@ -47,6 +51,18 @@ type Result struct {
 	Meta   interface{} `json:"meta,omitempty"`
 }
 
+// GetTodaysForcast resolves the NWS grid point for the given lat/lon, fetches (with caching)
+// the associated forecast, selects today's period relative to the current time, and
+// returns a summarized Result. It classifies the temperature using the configured
+// Bands (hot/moderate/cold) and includes the upstream document's update time in
+// Result.Meta["updated"].
+//
+// Caching:
+//   - points: maps lat/lon -> forecast URL
+//   - forecast: caches the full forecast document
+//
+// Errors are returned when the point has no forecast URL, when no usable forecast
+// periods are available for today, or when upstream calls fail.
 func (s *service) GetTodaysForcast(ctx context.Context, lat, lon float64) (Result, error) {
 	pointsKey := fmt.Sprintf("points:%.4f,%.4f", lat, lon)
 	var forecastURL string
@@ -87,7 +103,7 @@ func (s *service) GetTodaysForcast(ctx context.Context, lat, lon float64) (Resul
 	}
 
 	var res Result
-	res.Source = "api.weather.gov"
+	res.Source = source
 	res.Coords.Lat, res.Coords.Lon = lat, lon
 	res.Date = period.StartTime.Format("2006-01-02")
 	res.Today.Name = period.Name

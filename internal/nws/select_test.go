@@ -1,28 +1,30 @@
-package nws
+package nws_test
 
 import (
 	"testing"
 	"time"
+
+	"weather-service/internal/nws"
 )
 
 func TestSelectTodayPrefersNamed(t *testing.T) {
 	now := time.Date(2025, 8, 13, 9, 0, 0, 0, time.UTC)
-	periods := []Period{
+	periods := []nws.Period{
 		{Name: "Tonight", IsDaytime: false, StartTime: now},
-		{Name: "GetTodaysForcast", IsDaytime: true, StartTime: now},
+		{Name: "Today", IsDaytime: true, StartTime: now},
 	}
-	p, ok := SelectToday(periods, now)
-	if !ok || p.Name != "GetTodaysForcast" {
-		t.Fatalf("expected GetTodaysForcast, got %+v ok=%v", p, ok)
+	p, ok := nws.SelectToday(periods, now)
+	if !ok || p.Name != "Today" {
+		t.Fatalf("expected Today, got %+v ok=%v", p, ok)
 	}
 }
 
 func TestSelectTodayDaytimeSameDate(t *testing.T) {
 	now := time.Date(2025, 8, 13, 7, 0, 0, 0, time.FixedZone("X", -7*3600))
-	periods := []Period{
+	periods := []nws.Period{
 		{Name: "This Afternoon", IsDaytime: true, StartTime: time.Date(2025, 8, 13, 12, 0, 0, 0, time.FixedZone("X", -7*3600))},
 	}
-	p, ok := SelectToday(periods, now)
+	p, ok := nws.SelectToday(periods, now)
 	if !ok || p.Name != "This Afternoon" {
 		t.Fatalf("expected This Afternoon, got %+v ok=%v", p, ok)
 	}

@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	clientTimeout   = 5 * time.Second
 	backoffDuration = 250 * time.Millisecond
 )
 
@@ -28,7 +29,7 @@ type Client struct {
 // NewClient constructs a new NWS API client.
 func NewClient(baseURL, userAgent string, httpClient *http.Client, logger *slog.Logger) *Client {
 	if httpClient == nil {
-		httpClient = &http.Client{Timeout: 5 * time.Second}
+		httpClient = &http.Client{Timeout: clientTimeout}
 	}
 	return &Client{
 		base:   strings.TrimRight(baseURL, "/"),
@@ -57,7 +58,6 @@ func (c *Client) Forecast(ctx context.Context, forecastURL string) (Forecast, er
 	return f, nil
 }
 
-
 // doJSON performs an HTTP request and decodes a JSON (GeoJSON) response into out.
 // It sets required headers (User-Agent and Accept) and fails fast if the
 // client was created without a User-Agent. The request is executed with a
@@ -68,6 +68,7 @@ func (c *Client) Forecast(ctx context.Context, forecastURL string) (Forecast, er
 //   - HTTP 429 (Too Many Requests) and 503 (Service Unavailable) are retried;
 //     when the Retry-After header is present it is honored, otherwise the
 //     backoff delay is used
+//
 // Non-retryable HTTP statuses cause the body to be read and returned as part
 // of the error message. The response body is always closed. On a 200 OK, the
 // body is read and unmarshaled into out.
@@ -106,8 +107,8 @@ func (c *Client) doJSON(ctx context.Context, method, url string, out any) error 
 					lastErr = readAllErr
 					return
 				}
-				if err3 := json.Unmarshal(body, out); err3 != nil {
-					lastErr = err3
+				if unmarshalErr := json.Unmarshal(body, out); unmarshalErr != nil {
+					lastErr = unmarshalErr
 					return
 				}
 				lastErr = nil

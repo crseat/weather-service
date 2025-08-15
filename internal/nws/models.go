@@ -17,13 +17,13 @@ type PointsResponse struct {
 // Forecast is the NWS forecast document with periods and metadata.
 type Forecast struct {
 	Properties struct {
-		Updated time.Time `json:"updated"`
+		Updated time.Time `json:"updateTime"`
 		Units   string    `json:"units"`
 		Periods []Period  `json:"periods"`
 	} `json:"properties"`
 }
 
-// Period is an individual forecast period (e.g., GetTodaysForcast, Tonight).
+// Period is an individual forecast period (e.g., Today, Tonight).
 type Period struct {
 	Name             string    `json:"name"`
 	StartTime        time.Time `json:"startTime"`
