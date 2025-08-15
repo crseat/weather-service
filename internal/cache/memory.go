@@ -18,8 +18,8 @@ type entry struct {
 	exp time.Time
 }
 
-// NewMemory creates a new Memory cache with the provided TTL for entries.
-func NewMemory(ttl time.Duration) *Memory {
+// NewCache creates a new Memory cache with the provided TTL for entries.
+func NewCache(ttl time.Duration) *Memory {
 	return &Memory{
 		items: make(map[string]entry),
 		ttl:   ttl,

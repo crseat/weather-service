@@ -41,7 +41,7 @@ func (h *Handler) GetForecast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.svc.Today(r.Context(), lat, lon)
+	res, err := h.svc.GetTodaysForcast(r.Context(), lat, lon)
 	if err != nil {
 		writeErr(w, http.StatusBadGateway, err)
 		return

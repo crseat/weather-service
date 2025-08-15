@@ -9,11 +9,11 @@ func TestSelectTodayPrefersNamed(t *testing.T) {
 	now := time.Date(2025, 8, 13, 9, 0, 0, 0, time.UTC)
 	periods := []Period{
 		{Name: "Tonight", IsDaytime: false, StartTime: now},
-		{Name: "Today", IsDaytime: true, StartTime: now},
+		{Name: "GetTodaysForcast", IsDaytime: true, StartTime: now},
 	}
 	p, ok := SelectToday(periods, now)
-	if !ok || p.Name != "Today" {
-		t.Fatalf("expected Today, got %+v ok=%v", p, ok)
+	if !ok || p.Name != "GetTodaysForcast" {
+		t.Fatalf("expected GetTodaysForcast, got %+v ok=%v", p, ok)
 	}
 }
 

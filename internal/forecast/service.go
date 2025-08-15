@@ -12,8 +12,8 @@ import (
 
 // Service provides forecast data operations.
 type Service interface {
-	// Today returns a summarized forecast result for the given coordinates.
-	Today(ctx context.Context, lat, lon float64) (Result, error)
+	// GetTodaysForcast returns a summarized forecast result for the given coordinates.
+	GetTodaysForcast(ctx context.Context, lat, lon float64) (Result, error)
 }
 
 type service struct {
@@ -47,7 +47,7 @@ type Result struct {
 	Meta   interface{} `json:"meta,omitempty"`
 }
 
-func (s *service) Today(ctx context.Context, lat, lon float64) (Result, error) {
+func (s *service) GetTodaysForcast(ctx context.Context, lat, lon float64) (Result, error) {
 	pointsKey := fmt.Sprintf("points:%.4f,%.4f", lat, lon)
 	var forecastURL string
 	if v, ok := s.cache.Get(pointsKey); ok {

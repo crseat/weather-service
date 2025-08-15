@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+const (
+	backoffDuration = 250 * time.Millisecond
+)
+
 // Client wraps access to the api.weather.gov HTTP API.
 type Client struct {
 	base   string
@@ -53,6 +57,20 @@ func (c *Client) Forecast(ctx context.Context, forecastURL string) (Forecast, er
 	return f, nil
 }
 
+
+// doJSON performs an HTTP request and decodes a JSON (GeoJSON) response into out.
+// It sets required headers (User-Agent and Accept) and fails fast if the
+// client was created without a User-Agent. The request is executed with a
+// small retry policy:
+//   - Up to 3 attempts total
+//   - Transient network errors are retried with exponential backoff starting
+//     at 250ms
+//   - HTTP 429 (Too Many Requests) and 503 (Service Unavailable) are retried;
+//     when the Retry-After header is present it is honored, otherwise the
+//     backoff delay is used
+// Non-retryable HTTP statuses cause the body to be read and returned as part
+// of the error message. The response body is always closed. On a 200 OK, the
+// body is read and unmarshaled into out.
 func (c *Client) doJSON(ctx context.Context, method, url string, out any) error {
 	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
@@ -65,7 +83,7 @@ func (c *Client) doJSON(ctx context.Context, method, url string, out any) error 
 	req.Header.Set("Accept", "application/geo+json")
 
 	var lastErr error
-	backoff := 250 * time.Millisecond
+	backoff := backoffDuration
 
 	for attempt := 0; attempt < 3; attempt++ {
 		resp, doErr := c.http.Do(req)

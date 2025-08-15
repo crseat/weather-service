@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+const (
+	HTTPTimeoutDefault = 5 * time.Second
+	CacheTTLDefault    = 10 * time.Minute
+	ColdMaxDefault     = 45
+	HotMinDefault      = 85
+)
+
 // Config represents runtime configuration settings for the service.
 // Values are typically sourced from environment variables; see FromEnv.
 type Config struct {
@@ -27,15 +34,16 @@ func FromEnv() Config {
 	return Config{
 		Port:         getenv("PORT", "8080"),
 		LogLevel:     parseLevel(getenv("LOG_LEVEL", "INFO")),
-		HTTPTimeout:  parseDur(getenv("HTTP_TIMEOUT", "5s"), 5*time.Second),
+		HTTPTimeout:  parseDur(getenv("HTTP_TIMEOUT", "5s"), HTTPTimeoutDefault),
 		NWSBaseURL:   getenv("NWS_BASE_URL", "https://api.weather.gov"),
 		NWSUserAgent: getenv("NWS_USER_AGENT", ""),
-		CacheTTL:     parseDur(getenv("CACHE_TTL", "10m"), 10*time.Minute),
-		ColdMax:      parseInt(getenv("TEMP_BAND_COLD_MAX", "45"), 45),
-		HotMin:       parseInt(getenv("TEMP_BAND_HOT_MIN", "85"), 85),
+		CacheTTL:     parseDur(getenv("CACHE_TTL", "10m"), CacheTTLDefault),
+		ColdMax:      parseInt(getenv("TEMP_BAND_COLD_MAX", "45"), ColdMaxDefault),
+		HotMin:       parseInt(getenv("TEMP_BAND_HOT_MIN", "85"), HotMinDefault),
 	}
 }
 
+// getenv returns the value of an environment variable, or the default if it is not set.
 func getenv(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
@@ -43,6 +51,7 @@ func getenv(k, def string) string {
 	return def
 }
 
+// parseDur converts a string to a time.Duration, returning the default if the conversion fails.
 func parseDur(s string, def time.Duration) time.Duration {
 	if d, err := time.ParseDuration(s); err == nil {
 		return d
@@ -50,6 +59,7 @@ func parseDur(s string, def time.Duration) time.Duration {
 	return def
 }
 
+// parseInt converts a string to an integer, returning the default if the conversion fails.
 func parseInt(s string, def int) int {
 	if i, err := strconv.Atoi(s); err == nil {
 		return i
@@ -57,6 +67,7 @@ func parseInt(s string, def int) int {
 	return def
 }
 
+// parseLevel converts a string to a slog.Level, returning slog.LevelInfo if the conversion fails.
 func parseLevel(s string) slog.Level {
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "DEBUG":

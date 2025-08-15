@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"weather-service/internal/cache"
@@ -12,6 +16,12 @@ import (
 	logpkg "weather-service/internal/log"
 	"weather-service/internal/nws"
 	"weather-service/internal/server"
+)
+
+const (
+	ReadHeaderTimeout = 5 * time.Second
+	IdleTimeout       = 60 * time.Second
+	contextTimeout    = 5 * time.Second
 )
 
 func main() {
@@ -28,7 +38,7 @@ func main() {
 	httpClient := &http.Client{Timeout: cfg.HTTPTimeout}
 	nwsClient := nws.NewClient(cfg.NWSBaseURL, cfg.NWSUserAgent, httpClient, logger)
 
-	memCache := cache.NewMemory(cfg.CacheTTL)
+	memCache := cache.NewCache(cfg.CacheTTL)
 	svc := forecast.NewService(nwsClient, memCache, forecast.Bands{
 		ColdMax: cfg.ColdMax,
 		HotMin:  cfg.HotMin,
@@ -40,13 +50,28 @@ func main() {
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           server.WithMiddleware(mux),
-		ReadHeaderTimeout: 5 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		ReadHeaderTimeout: ReadHeaderTimeout,
+		IdleTimeout:       IdleTimeout,
 	}
 
-	logger.Info("starting weather-service", "port", cfg.Port)
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Error("server error", "err", err)
-		os.Exit(1)
+	go func() {
+		logger.Info("starting weather-service", "port", cfg.Port)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("server startup error", "err", err)
+		}
+	}()
+
+	// graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	logger.Info("initiating graceful shutdown...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("server shutdown error", "err", err)
+	} else {
+		logger.Info("server shutdown complete")
 	}
 }

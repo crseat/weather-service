@@ -23,7 +23,7 @@ type Forecast struct {
 	} `json:"properties"`
 }
 
-// Period is an individual forecast period (e.g., Today, Tonight).
+// Period is an individual forecast period (e.g., GetTodaysForcast, Tonight).
 type Period struct {
 	Name             string    `json:"name"`
 	StartTime        time.Time `json:"startTime"`
