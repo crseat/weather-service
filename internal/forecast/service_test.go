@@ -1,9 +1,12 @@
-package forecast
+package forecast_test
 
-import "testing"
+import (
+	"testing"
+	"weather-service/internal/forecast"
+)
 
 func TestClassify(t *testing.T) {
-	b := Bands{ColdMax: 45, HotMin: 85}
+	b := forecast.Bands{ColdMax: 45, HotMin: 85}
 	cases := []struct {
 		t int
 		e string
@@ -16,7 +19,7 @@ func TestClassify(t *testing.T) {
 		{100, "hot"},
 	}
 	for _, c := range cases {
-		if got := Classify(c.t, b); got != c.e {
+		if got := forecast.Classify(c.t, b); got != c.e {
 			t.Fatalf("temp %d => %s, want %s", c.t, got, c.e)
 		}
 	}

@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ctxKey int
@@ -18,14 +18,15 @@ func WithMiddleware(next http.Handler) http.Handler {
 	return requestID(recoverer(logger(next)))
 }
 
+// logger logs the request and response.
 func logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		ww := &responseWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(ww, r)
 		reqID := GetRequestID(r.Context())
-		logger := slog.Default()
-		logger.Info("http_request",
+		slogger := slog.Default()
+		slogger.Info("http_request",
 			"method", r.Method,
 			"path", r.URL.Path,
 			"status", ww.status,
@@ -35,6 +36,7 @@ func logger(next http.Handler) http.Handler {
 	})
 }
 
+// recoverer recovers from panics and returns a 500 error.
 func recoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -47,6 +49,7 @@ func recoverer(next http.Handler) http.Handler {
 	})
 }
 
+// requestID adds a request ID to the context if not already present.
 func requestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Header.Get("X-Request-ID")
@@ -78,10 +81,7 @@ func (w *responseWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
+// genID generates a random ID using UUID v4.
 func genID() string {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "xxxxxxxxxxxxxxxx"
-	}
-	return hex.EncodeToString(b[:])
+	return uuid.NewString()
 }
