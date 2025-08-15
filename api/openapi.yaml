@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Weather Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /v1/forecast:
+    get:
+      summary: Get today's short forecast and classification
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number, format: float }
+          description: Latitude in decimal degrees
+        - name: lon
+          in: query
+          required: true
+          schema: { type: number, format: float }
+          description: Longitude in decimal degrees
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coords:
+                    type: object
+                    properties:
+                      lat: { type: number }
+                      lon: { type: number }
+                  date: { type: string, example: "2025-08-13" }
+                  today:
+                    type: object
+                    properties:
+                      name: { type: string, example: "Today" }
+                      shortForecast: { type: string, example: "Partly Cloudy" }
+                      temperature:
+                        type: object
+                        properties:
+                          value: { type: integer, example: 72 }
+                          unit: { type: string, example: "F" }
+                          type: { type: string, enum: [hot, moderate, cold] }
+                  source: { type: string, example: "api.weather.gov" }
+                  meta:
+                    type: object
+        '400':
+          description: Bad request (invalid lat/lon)
+        '502':
+          description: Upstream error

@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  weather:
+    build: .
+    environment:
+      - PORT=8080
+      - LOG_LEVEL=INFO
+      - HTTP_TIMEOUT=5s
+      - NWS_BASE_URL=https://api.weather.gov
+      - NWS_USER_AGENT=${NWS_USER_AGENT}
+      - CACHE_TTL=10m
+      - TEMP_BAND_COLD_MAX=45
+      - TEMP_BAND_HOT_MIN=85
+    ports:
+      - "8080:8080"
